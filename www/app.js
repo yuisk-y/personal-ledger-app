@@ -1,4 +1,5 @@
 const STORAGE_KEY = "personal-ledger-v1";
+const TREND_MODE_KEY = "personal-ledger-trend-mode";
 
 const expenseCategories = ["餐饮", "交通", "购物", "学习", "娱乐", "房租", "人情", "医疗", "日用品", "其他"];
 const incomeCategories = ["工资/生活费", "兼职", "报销", "退款", "理财", "其他"];
@@ -9,6 +10,7 @@ const categoryPalette = ["#2f6f53", "#d59b31", "#315b7b", "#a94731", "#6d5b3f", 
 const state = loadState();
 let currentView = "home";
 let entryType = "expense";
+let dailyTrendMode = localStorage.getItem(TREND_MODE_KEY) || "amount";
 
 const $ = (id) => document.getElementById(id);
 
@@ -99,6 +101,14 @@ function bindEvents() {
 
   document.querySelectorAll("[data-entry-type]").forEach((button) => {
     button.addEventListener("click", () => setEntryType(button.dataset.entryType));
+  });
+
+  document.querySelectorAll("[data-trend-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      dailyTrendMode = button.dataset.trendMode;
+      localStorage.setItem(TREND_MODE_KEY, dailyTrendMode);
+      renderStats();
+    });
   });
 
   $("clearEntryBtn").addEventListener("click", () => startNewEntry(entryType));
@@ -368,6 +378,9 @@ function renderStats() {
   els.monthBudget.textContent = money(budget);
   els.specialTotal.textContent = money(sum(special, "amount"));
   els.largeCount.textContent = String(large.length);
+  document.querySelectorAll("[data-trend-mode]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.trendMode === dailyTrendMode);
+  });
 
   renderCategoryStats(monthExpenses);
   renderDailyTrend(monthExpenses, month);
@@ -435,23 +448,68 @@ function renderCategoryStats(expenses) {
 
 function renderDailyTrend(expenses, month) {
   const days = daysInMonth(month);
-  const groups = groupBySum(expenses, (tx) => tx.transactionDate.slice(-2));
-  const max = Math.max(1, ...Object.values(groups));
+  const dailyTotals = groupBySum(expenses, (tx) => tx.transactionDate.slice(-2));
+  const max = Math.max(1, ...Object.values(dailyTotals));
+  const axisMax = Math.ceil(max / niceAxisStep(max)) * niceAxisStep(max);
+  const axisLabels = [axisMax, axisMax / 2, 0];
   const bars = [];
 
   for (let day = 1; day <= days; day += 1) {
     const key = String(day).padStart(2, "0");
-    const amount = groups[key] || 0;
-    const height = Math.max(2, Math.round((amount / max) * 96));
+    const amount = dailyTotals[key] || 0;
+    const height = Math.max(2, Math.round((amount / axisMax) * 112));
+    const dayExpenses = expenses.filter((tx) => tx.transactionDate.slice(-2) === key);
+    const segments = buildDailySegments(dayExpenses, amount);
+    const showComposition = dailyTrendMode === "composition" && amount > 0;
+    const amountLabel = amount > 0 ? `<b>${compactMoney(amount)}</b>` : `<b class="muted-zero">0</b>`;
+    const fill = showComposition
+      ? `<i class="trend-stack" style="height:${height}px">${segments}</i>`
+      : `<i style="height:${height}px"></i>`;
+
     bars.push(`
       <div class="trend-bar" title="${key}日 ${money(amount)}">
-        <i style="height:${height}px"></i>
+        ${amountLabel}
+        <div class="trend-column">
+          ${fill}
+        </div>
         <span>${day}</span>
       </div>
     `);
   }
 
-  els.dailyTrend.innerHTML = bars.join("");
+  els.dailyTrend.innerHTML = `
+    <div class="trend-axis" aria-hidden="true">
+      ${axisLabels.map((value) => `<span>${compactMoney(value)}</span>`).join("")}
+    </div>
+    <div class="trend-scroll">
+      <div class="trend-grid-lines" aria-hidden="true"></div>
+      <div class="trend-chart">${bars.join("")}</div>
+    </div>
+  `;
+}
+
+function buildDailySegments(dayExpenses, total) {
+  if (!dayExpenses.length || total <= 0) return "";
+  const groups = groupBySum(dayExpenses, (tx) => tx.category || "其他");
+  return Object.entries(groups)
+    .sort((a, b) => b[1] - a[1])
+    .map(([category, amount]) => {
+      const percent = total ? (amount / total) * 100 : 0;
+      return `
+        <span
+          class="trend-segment"
+          style="height:${percent.toFixed(4)}%; background:${getCategoryColor(category)}"
+          title="${escapeHtml(category)} ${money(amount)} / ${Math.round(percent)}%"
+        ></span>
+      `;
+    })
+    .join("");
+}
+
+function getCategoryColor(category) {
+  const index = expenseCategories.indexOf(category);
+  if (index >= 0) return categoryPalette[index % categoryPalette.length];
+  return categoryPalette[categoryPalette.length - 1];
 }
 
 function renderAccountBalances() {
@@ -878,6 +936,24 @@ function groupBySum(items, getKey) {
 
 function sum(items, field) {
   return roundMoney(items.reduce((total, item) => total + (Number(item[field]) || 0), 0));
+}
+
+function niceAxisStep(value) {
+  if (value <= 10) return 5;
+  if (value <= 50) return 10;
+  if (value <= 100) return 20;
+  if (value <= 500) return 100;
+  if (value <= 1000) return 200;
+  if (value <= 5000) return 1000;
+  return 5000;
+}
+
+function compactMoney(value) {
+  const rounded = roundMoney(value);
+  if (rounded >= 10000) return `${roundMoney(rounded / 10000)}万`;
+  if (rounded >= 1000) return `${Math.round(rounded)}`;
+  if (Number.isInteger(rounded)) return String(rounded);
+  return rounded.toFixed(1);
 }
 
 function money(value) {

@@ -168,8 +168,14 @@
         </section>
 
         <section class="section-block">
-          <h3>每日趋势</h3>
-          <div id="dailyTrend" class="trend-chart empty-host"></div>
+          <div class="section-head">
+            <h3>每日趋势</h3>
+            <div class="trend-mode" aria-label="每日趋势显示模式">
+              <button class="active" type="button" data-trend-mode="amount">金额</button>
+              <button type="button" data-trend-mode="composition">金额+占比</button>
+            </div>
+          </div>
+          <div id="dailyTrend" class="trend-panel empty-host"></div>
         </section>
 
         <section class="section-block">

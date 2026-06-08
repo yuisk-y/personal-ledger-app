@@ -11,6 +11,7 @@
   --gold: #d59b31;
   --blue: #315b7b;
   --shadow: 0 18px 42px rgba(48, 38, 24, 0.12);
+  --number-font: "Bahnschrift", "DIN Alternate", "Roboto Condensed", "Arial Narrow", "Segoe UI", sans-serif;
   color-scheme: light;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
 }
@@ -169,7 +170,11 @@ h3 {
 .stats-grid strong {
   display: block;
   overflow-wrap: anywhere;
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
   font-size: clamp(24px, 9vw, 36px);
+  font-weight: 850;
   line-height: 1.05;
 }
 
@@ -354,14 +359,26 @@ textarea:focus {
 }
 
 .record-card .negative {
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 850;
   color: var(--red);
 }
 
 .record-card .positive {
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 850;
   color: var(--green);
 }
 
 .record-card .neutral {
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 850;
   color: var(--blue);
 }
 
@@ -462,6 +479,9 @@ textarea:focus {
   place-items: center;
   padding: 34px;
   color: var(--ink);
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
   font-size: 12px;
   font-weight: 900;
   line-height: 1.1;
@@ -516,46 +536,133 @@ textarea:focus {
 
 .category-row b {
   color: var(--ink);
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 850;
 }
 
 .category-row em {
   color: var(--blue);
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
   font-style: normal;
   font-weight: 800;
   text-align: right;
 }
 
-.trend-chart {
+.trend-mode {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 26px;
-  align-items: end;
-  min-height: 168px;
-  gap: 7px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 12px 10px 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  min-width: 148px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 241, 0.8);
+}
+
+.trend-mode button {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.trend-mode button.active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.trend-panel {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  min-height: 198px;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fffdf8;
+}
+
+.trend-axis {
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  align-items: center;
+  padding: 18px 8px 26px 10px;
+  border-right: 1px solid rgba(216, 208, 194, 0.82);
+  background: linear-gradient(90deg, rgba(255, 250, 241, 0.98), rgba(255, 250, 241, 0.74));
+  color: var(--muted);
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-size: 11px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.trend-axis span:first-child {
+  align-self: start;
+}
+
+.trend-axis span:nth-child(2) {
+  align-self: center;
+}
+
+.trend-axis span:last-child {
+  align-self: end;
+}
+
+.trend-scroll {
+  position: relative;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
   scrollbar-color: var(--gold) #ede2d2;
 }
 
-.trend-chart::-webkit-scrollbar {
+.trend-scroll::-webkit-scrollbar {
   height: 8px;
 }
 
-.trend-chart::-webkit-scrollbar-track {
+.trend-scroll::-webkit-scrollbar-track {
   border-radius: 999px;
   background: #ede2d2;
 }
 
-.trend-chart::-webkit-scrollbar-thumb {
+.trend-scroll::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: var(--gold);
+}
+
+.trend-grid-lines {
+  position: absolute;
+  inset: 18px 0 26px;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(216, 208, 194, 0.9) 1px, transparent 1px),
+    linear-gradient(to bottom, transparent calc(50% - 1px), rgba(216, 208, 194, 0.78) calc(50% - 1px), rgba(216, 208, 194, 0.78) 50%, transparent 50%),
+    linear-gradient(to top, rgba(216, 208, 194, 0.9) 1px, transparent 1px);
+}
+
+.trend-chart {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 34px;
+  align-items: end;
+  min-width: max-content;
+  min-height: 198px;
+  gap: 8px;
+  padding: 10px 12px 8px;
 }
 
 .trend-bar {
@@ -563,22 +670,61 @@ textarea:focus {
   flex-direction: column;
   align-items: center;
   justify-content: end;
-  gap: 5px;
-  min-height: 138px;
+  gap: 4px;
+  min-height: 180px;
   scroll-snap-align: start;
 }
 
-.trend-bar i {
+.trend-bar b {
   display: block;
+  min-height: 18px;
+  color: var(--ink);
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+}
+
+.trend-bar b.muted-zero {
+  color: #b7ac9c;
+}
+
+.trend-column {
+  display: flex;
+  align-items: end;
+  justify-content: center;
   width: 100%;
+  height: 118px;
+}
+
+.trend-bar i {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 24px;
   min-height: 2px;
   border-radius: 5px 5px 0 0;
   background: var(--gold);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(36, 31, 26, 0.08);
+}
+
+.trend-stack {
+  background: #ede2d2;
+}
+
+.trend-segment {
+  display: block;
+  width: 100%;
+  min-height: 2px;
 }
 
 .trend-bar span {
   color: var(--muted);
   font-size: 10px;
+  font-weight: 800;
 }
 
 .balance-list,
@@ -599,6 +745,13 @@ textarea:focus {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fffdf8;
+}
+
+.balance-row > strong {
+  font-family: var(--number-font);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 850;
 }
 
 .account-row {
