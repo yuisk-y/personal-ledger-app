@@ -39,8 +39,17 @@
         <div class="action-row">
           <button class="pill-button" type="button" data-new-type="expense">记支出</button>
           <button class="pill-button" type="button" data-new-type="income">记收入</button>
-          <button class="pill-button" type="button" data-new-type="transfer">记转账</button>
+          <button class="pill-button" id="quickTransferBtn" type="button" data-new-type="transfer">记转账</button>
         </div>
+
+        <button class="assistant-entry" type="button" data-nav-target="ai">
+          <span class="assistant-mark" aria-hidden="true">AI</span>
+          <span>
+            <strong>财务助手</strong>
+            <small>分析近期消费与预算</small>
+          </span>
+          <b aria-hidden="true">›</b>
+        </button>
 
         <section class="section-block">
           <div class="section-head">
@@ -57,14 +66,21 @@
           <button class="text-button" type="button" id="clearEntryBtn">清空</button>
         </div>
 
-        <div class="segmented" role="tablist" aria-label="流水类型">
+        <div class="segmented" id="entryTypeTabs" role="tablist" aria-label="流水类型">
           <button class="active" type="button" data-entry-type="expense">支出</button>
           <button type="button" data-entry-type="income">收入</button>
-          <button type="button" data-entry-type="transfer">转账</button>
+          <button id="transferTypeBtn" type="button" data-entry-type="transfer">转账</button>
         </div>
 
         <form id="entryForm" class="form-panel">
           <input type="hidden" id="editingId">
+          <div class="receipt-scan">
+            <label class="pill-button file-button receipt-scan-button">
+              识别订单截图
+              <input id="receiptImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+            </label>
+            <span id="receiptScanStatus">可选择1-5张截图，生成待核对账单</span>
+          </div>
           <label>
             <span>金额</span>
             <input id="amountInput" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0.00" required>
@@ -115,6 +131,32 @@
         </form>
       </section>
 
+      <section class="view" id="aiView" data-view="ai" aria-labelledby="aiTitle">
+        <div class="section-head">
+          <button class="text-button" type="button" data-nav-target="home">返回</button>
+          <h2 id="aiTitle">财务助手</h2>
+          <button class="text-button" type="button" id="clearAiBtn">清空</button>
+        </div>
+
+        <div class="ai-safety-note">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>只读分析账本，不会自动修改流水</span>
+        </div>
+
+        <div class="quick-prompts" aria-label="常用问题">
+          <button type="button" data-ai-prompt="帮我分析一下近7天的消费，给我三条具体建议。">近7天消费</button>
+          <button type="button" data-ai-prompt="最近花销是不是有点大？请结合预算和以往消费说明原因。">花销是否偏高</button>
+          <button type="button" data-ai-prompt="本月哪些分类最值得控制？请按优先级说明。">控制支出</button>
+        </div>
+
+        <div id="aiMessages" class="ai-messages" aria-live="polite"></div>
+
+        <form id="aiForm" class="ai-composer">
+          <textarea id="aiInput" rows="2" maxlength="500" placeholder="问问近期消费、预算或余额" required></textarea>
+          <button id="aiSendBtn" class="submit-button" type="submit">发送</button>
+        </form>
+      </section>
+
       <section class="view" id="recordsView" data-view="records" aria-labelledby="recordsTitle">
         <div class="section-head">
           <h2 id="recordsTitle">流水</h2>
@@ -122,8 +164,8 @@
         </div>
 
         <div class="filters">
-          <input id="filterMonth" type="month" aria-label="月份筛选">
-          <select id="filterAccount" aria-label="账户筛选"></select>
+          <select id="filterMonth" aria-label="月份筛选"></select>
+          <select id="filterAccount" class="account-only-control" aria-label="账户筛选"></select>
           <select id="filterType" aria-label="类型筛选">
             <option value="">全部类型</option>
             <option value="expense">支出</option>
@@ -178,7 +220,15 @@
           <div id="dailyTrend" class="trend-panel empty-host"></div>
         </section>
 
-        <section class="section-block">
+        <section class="section-block" id="dailyBreakdownSection">
+          <div class="section-head">
+            <h3>单日支出结构</h3>
+            <span id="dailyBreakdownDate" class="section-badge"></span>
+          </div>
+          <div id="dailyBreakdown" class="daily-breakdown empty-host"></div>
+        </section>
+
+        <section class="section-block" id="accountBalancesSection">
           <h3>账户余额</h3>
           <div id="accountBalances" class="balance-list"></div>
         </section>
@@ -198,6 +248,32 @@
         <h2 id="settingsTitle">设置</h2>
 
         <section class="section-block">
+          <h3>记账风格</h3>
+          <div class="mode-picker" role="radiogroup" aria-label="记账风格">
+            <button type="button" data-ledger-mode="simple">
+              <strong>总余额</strong>
+              <span>只记录收支，不区分钱放在哪里</span>
+            </button>
+            <button type="button" data-ledger-mode="accounts">
+              <strong>多账户</strong>
+              <span>区分微信、支付宝、银行卡等账户</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="section-block" id="simpleBalanceSection">
+          <div class="section-head">
+            <h3>当前总余额</h3>
+            <button class="text-button" type="button" id="saveTotalBalanceBtn">保存</button>
+          </div>
+          <label class="inline-field">
+            <span>实际可用余额</span>
+            <input id="totalBalanceInput" type="number" inputmode="decimal" step="0.01">
+          </label>
+          <p class="hint">保存后会以这个金额为当前余额，已有流水不会改变。</p>
+        </section>
+
+        <section class="section-block">
           <div class="section-head">
             <h3>本月预算</h3>
             <button class="text-button" type="button" id="saveBudgetBtn">保存</button>
@@ -208,24 +284,42 @@
           </label>
         </section>
 
-        <section class="section-block">
+        <section class="section-block" id="accountSettingsSection">
           <div class="section-head">
             <h3>账户管理</h3>
             <button class="text-button" type="button" id="addAccountBtn">新增</button>
           </div>
           <div id="accountSettings" class="account-settings"></div>
+          <button class="pill-button warn-button" type="button" id="calibrateBalancesBtn">按上方金额校准余额</button>
+          <p class="hint">如果误把当前余额填进了“起始余额”，点这里会把上方金额视为真实当前余额，并根据全部流水反推起始余额。</p>
+        </section>
+
+        <section class="section-block" id="aiSettingsSection">
+          <div class="section-head">
+            <h3>DeepSeek</h3>
+            <span id="aiKeyStatus" class="connection-status">未配置</span>
+          </div>
+          <label class="inline-field">
+            <span>API Key</span>
+            <input id="aiKeyInput" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="输入 DeepSeek API Key">
+          </label>
+          <div class="settings-actions">
+            <button class="pill-button primary-action" type="button" id="saveAiKeyBtn">保存密钥</button>
+            <button class="pill-button" type="button" id="clearAiKeyBtn">移除</button>
+          </div>
+          <p class="hint">密钥只保存在当前设备，不会写入备份或上传到 GitHub。AI 分析时，相关账单数据会发送至 DeepSeek。</p>
         </section>
 
         <section class="section-block">
           <h3>数据备份</h3>
           <div class="backup-actions">
-            <button class="pill-button" type="button" id="exportBtn">导出 CSV</button>
+            <button class="pill-button" type="button" id="exportBtn">导出 ZIP</button>
             <label class="pill-button file-button">
               导入 CSV
               <input id="importInput" type="file" accept=".csv,text/csv" multiple>
             </label>
           </div>
-          <p class="hint">导入会覆盖当前本地数据。建议先导出备份。</p>
+          <p class="hint">导出时可选择 ZIP 保存位置；导入仍选择解压后的 accounts、transactions、budgets 三个 CSV，settings 文件可一并选择以恢复记账风格。</p>
         </section>
       </section>
     </main>
@@ -241,14 +335,54 @@
 
   <dialog id="setupDialog" class="modal">
     <form method="dialog" id="setupForm">
-      <h2>初始化账户</h2>
-      <p>先填入当前余额，之后 App 会根据流水自动计算余额。</p>
-      <div id="setupAccounts" class="setup-list"></div>
+      <h2>开始记账</h2>
+      <p>选择适合你的记账方式，之后可以随时在设置中切换。</p>
+      <div class="mode-picker setup-mode-picker" role="radiogroup" aria-label="初始记账风格">
+        <button class="active" type="button" data-setup-mode="simple">
+          <strong>总余额</strong>
+          <span>简单记录，不区分账户</span>
+        </button>
+        <button type="button" data-setup-mode="accounts">
+          <strong>多账户</strong>
+          <span>分别管理每个账户</span>
+        </button>
+      </div>
+      <div id="setupSimpleBalance">
+        <label>
+          <span>当前总余额</span>
+          <input id="setupTotalBalance" type="number" inputmode="decimal" step="0.01" placeholder="例如 5000">
+        </label>
+      </div>
+      <div id="setupAccountFields" class="hidden">
+        <div id="setupAccounts" class="setup-list"></div>
+      </div>
       <label>
         <span>本月预算</span>
         <input id="setupBudget" type="number" inputmode="decimal" min="0" step="0.01" placeholder="例如 3000">
       </label>
       <button class="submit-button" value="default">开始使用</button>
+    </form>
+  </dialog>
+
+  <dialog id="receiptReviewDialog" class="modal receipt-review-modal">
+    <form id="receiptReviewForm">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">识别结果</p>
+          <h2>核对多笔账单</h2>
+        </div>
+        <button class="text-button" type="button" id="closeReceiptReviewBtn">关闭</button>
+      </div>
+      <p id="receiptReviewSummary" class="review-summary"></p>
+      <label id="receiptBatchAccountField" class="hidden">
+        <span>统一记入账户</span>
+        <select id="receiptBatchAccount"></select>
+      </label>
+      <div id="receiptDraftList" class="receipt-draft-list"></div>
+      <div class="review-actions">
+        <button class="pill-button" type="button" id="cancelReceiptReviewBtn">取消</button>
+        <button class="submit-button" type="submit" id="saveReceiptDraftsBtn">导入选中账单</button>
+      </div>
     </form>
   </dialog>
 

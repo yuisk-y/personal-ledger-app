@@ -1,0 +1,67 @@
+{
+  "pass": true,
+  "count": 4,
+  "amounts": [
+    4,
+    36.8,
+    129.9,
+    1000
+  ],
+  "transactions": [
+    {
+      "amount": 36.8,
+      "transaction_type": "expense",
+      "category": "餐饮",
+      "transaction_date": "2026-09-04",
+      "merchant": "美团外卖",
+      "note": "午餐",
+      "is_special": false,
+      "confidence": 0.98,
+      "source_index": 1
+    },
+    {
+      "amount": 4,
+      "transaction_type": "expense",
+      "category": "交通",
+      "transaction_date": "2026-09-05",
+      "merchant": "地铁乘车",
+      "note": "交通出行",
+      "is_special": false,
+      "confidence": 0.98,
+      "source_index": 2
+    },
+    {
+      "amount": 129.9,
+      "transaction_type": "expense",
+      "category": "购物",
+      "transaction_date": "2026-09-05",
+      "merchant": "京东商城",
+      "note": "宿舍台灯",
+      "is_special": false,
+      "confidence": 0.98,
+      "source_index": 3
+    },
+    {
+      "amount": 1000,
+      "transaction_type": "income",
+      "category": "工资/生活费",
+      "transaction_date": "2026-09-06",
+      "merchant": "生活费",
+      "note": "家人转入",
+      "is_special": false,
+      "confidence": 0.98,
+      "source_index": 4
+    }
+  ],
+  "usage": {
+    "input_tokens": 755,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 291,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 1046
+  }
+}

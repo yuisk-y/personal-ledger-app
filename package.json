@@ -1,10 +1,11 @@
 {
   "name": "personal-ledger-app",
-  "version": "0.1.0",
+  "version": "1.5.0",
   "private": true,
-  "description": "个人离线记账 App",
+  "description": "支持本地记账、统计、备份和 AI 财务分析的安卓 App",
   "scripts": {
     "serve": "node serve.js",
+    "ai:test": "node tests/ai-boundary-eval.mjs",
     "cap:sync": "npx cap sync android",
     "cap:open": "npx cap open android",
     "android:build": "cd android && gradlew.bat assembleDebug"

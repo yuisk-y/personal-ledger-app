@@ -1,8 +1,10 @@
 # 记账本 MVP
 
-这是一个个人离线记账 App 原型，适合先在安卓手机浏览器里使用。它不需要登录、不需要联网，数据保存在当前浏览器本地。
+这是一个个人记账 App。账本数据默认保存在当前设备本地；截图识别和财务助手需要联网，并使用用户自己的 DeepSeek API Key。
 
 App 的正式网页资源在 `www/` 目录中，安卓封装也会使用这一份文件。
+
+当前版本为 **1.5.0**（Android `versionCode 12`），历史更新见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 已完成功能
 
@@ -14,6 +16,9 @@ App 的正式网页资源在 `www/` 目录中，安卓封装也会使用这一�
 - 首页显示今日支出、预算剩余、总余额
 - 统计页显示分类占比、每日趋势、账户余额、大额支出、特殊账单
 - 设置页支持账户启用/停用、预算修改、CSV 导出/导入
+- 单张订单列表或最多5张截图可批量识别多笔账单，逐笔核对后再导入
+- 内置只读 AI 财务助手，可分析近期消费、预算和余额
+- DeepSeek API Key 在安卓端加密保存，不包含在 APK 和数据备份中
 - 支持 PWA 离线缓存，安卓浏览器可添加到桌面
 
 ## 本地运行
@@ -61,7 +66,7 @@ cd D:\aiworkspace\记账本
 npx cap sync android
 ```
 
-说明：当前电脑还没有完整 Android 构建环境，直接命令行构建时 Gradle 下载超时。项目结构已经准备好，安装 Android Studio 后再打开 `android/` 会更稳。
+AI 功能需要先在 App 的“设置 -> DeepSeek”中填写 API Key。不要把 API Key 写进代码或提交到 GitHub。
 
 ## 安卓手机使用
 
@@ -73,6 +78,8 @@ npx cap sync android
 ## 数据说明
 
 - App 内部数据保存在浏览器 `localStorage` 中。
+- DeepSeek API Key 不会包含在 ZIP 备份中。
+- 使用 AI 功能时，相关截图或账本摘要会发送至 DeepSeek；普通记账和统计仍可离线使用。
 - CSV 导出会生成 `accounts.csv`、`transactions.csv`、`budgets.csv` 三个文件。
 - CSV 导入会覆盖当前本地数据，导入前建议先导出一份备份。
 
